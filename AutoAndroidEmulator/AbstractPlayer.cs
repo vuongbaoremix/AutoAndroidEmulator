@@ -152,26 +152,37 @@ namespace AutoAndroidEmulator
             return Utils.ExecuteCMD($"{this.Config.ADBPath}/adb.exe -s {this.PlayerDevice.AdbDevice} {cmd}");
         }
 
-        protected virtual Rectangle InternalFind(Bitmap img, Bitmap source, double tolerance = 0.1)
+        protected virtual Rectangle InternalFind(Bitmap img, Bitmap source, double tolerance = 0.2)
         {
-            switch (this.Config.FindImageType)
+            var w = Stopwatch.StartNew();
+            var searchImage = (Bitmap)img.Clone();
+            try
             {
-                case FindImageType.Default:
-                    return Utils.Search((Bitmap)img.Clone(), source, tolerance);
-                case FindImageType.OpenCV:
-                    break;
-                case FindImageType.DeepLearning:
-                    break;
-                case FindImageType.Service:
-                    break;
-                default:
-                    break;
+                switch (this.Config.FindImageType)
+                {
+                    case FindImageType.Default:
+                        return Utils.Search(searchImage, source, tolerance);
+                    case FindImageType.OpenCV:
+                        break;
+                    case FindImageType.DeepLearning:
+                        break;
+                    case FindImageType.Service:
+                        break;
+                    default:
+                        break;
+                }
+            }
+            finally
+            {
+                w.Stop();
+                System.Diagnostics.Debug.WriteLine($"FindImage Time: {w.ElapsedMilliseconds}");
+                searchImage.Dispose();
             }
 
             return Rectangle.Empty;
         }
 
-        public virtual Rectangle FindImg(Bitmap img, Rectangle? rec = null, TimeSpan? timeout = null, double tolerance = 0.1)
+        public virtual Rectangle FindImg(Bitmap img, Rectangle? rec = null, TimeSpan? timeout = null, double tolerance = 0.2)
         {
             return FuncTimeout(() =>
             {
@@ -180,7 +191,7 @@ namespace AutoAndroidEmulator
             }, timeout);
         }
 
-        public virtual Rectangle FindImg(Bitmap img, Bitmap source, TimeSpan? timeout = null, double tolerance = 0.1)
+        public virtual Rectangle FindImg(Bitmap img, Bitmap source, TimeSpan? timeout = null, double tolerance = 0.2)
         {
             return FuncTimeout(() =>
             {
@@ -193,13 +204,21 @@ namespace AutoAndroidEmulator
             return FuncTimeout(() =>
             {
                 var source = this.Capture();
-                var rs = InternalFind(img, source, tolerance);
-                if (touch && !rs.IsEmpty)
+                try
                 {
-                    this.Touch(new Point(rs.X + rs.Width / 2, rs.Y + rs.Height / 2));
-                }
+                    var rs = InternalFind(img, source, tolerance);
+                    if (touch && !rs.IsEmpty)
+                    {
+                        this.Touch(new Point(rs.X + rs.Width / 2, rs.Y + rs.Height / 2));
+                    }
 
-                return !rs.IsEmpty;
+                    return !rs.IsEmpty;
+                }
+                finally
+                {
+                    source.Dispose();
+                    GC.Collect();
+                }
             }, timeout);
         }
 
@@ -232,9 +251,11 @@ namespace AutoAndroidEmulator
             }, timeout);
         }
 
-        public virtual void Touch(Bitmap bm)
+        public virtual void Touch(Bitmap bm, double tolerance = 0.2)
         {
-            var rec = this.FindImg(bm);
+            var rec = this.FindImg(bm, tolerance: tolerance);
+            if (rec.Width == 0)
+                return;
 
             this.Touch(new Point(rec.X + rec.Width / 2, rec.Y + rec.Height / 2));
         }
