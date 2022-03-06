@@ -202,7 +202,10 @@ namespace AutoAndroidEmulator
 
         public void ClearInput()
         {
-            Key(KeyCode.KEYCODE_CLEAR);
+            for (int i = 0; i < 15; i++)
+            {
+                Key(KeyCode.KEYCODE_DEL); 
+            }
         }
 
         public List<string> Devices()
