@@ -74,7 +74,7 @@ namespace AutoAndroidEmulator
         bool WaitImg(Bitmap img, Rectangle rec, TimeSpan? timeout = null, double tolerance = 0.2, bool touch = false);
         bool WaitImg(Bitmap source, Bitmap img, TimeSpan? timeout = null, double tolerance = 0.2, bool touch = false);
 
-        void Touch(Bitmap bm);
+        void Touch(Bitmap bm, double tolerance = 0.2);
         void Touch(Point p);
         void Input(string text);
         void ClearInput(int length = 10);
