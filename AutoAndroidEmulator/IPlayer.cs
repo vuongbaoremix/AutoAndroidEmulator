@@ -45,7 +45,7 @@ namespace AutoAndroidEmulator
 
         void Push(string remote, string local);
 
-        void BackupApp(string packageName, string filePath);
+        void BackupApp(string packageName, string filePath, Action<string> callbackBeforeCompress = null);
 
         void RestoreApp(string packageName, string filePath);
 
