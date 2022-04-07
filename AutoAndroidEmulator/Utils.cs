@@ -129,9 +129,9 @@ namespace AutoAndroidEmulator
 
         public static string ExecuteCMD(string cmd)
         {
-            var p = StartProcess("cmd.exe", $"/c {cmd}");
+            var p = StartProcess("cmd.exe", $"/c {cmd}"); 
 
-            return p.StandardOutput.ReadToEnd(); 
+            return p.StandardOutput.ReadToEnd();
         }
     }
 }
