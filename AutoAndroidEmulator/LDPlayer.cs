@@ -109,6 +109,16 @@ namespace AutoAndroidEmulator
             var devices = this.GetDevices();
             var running = this.RunningList();
             var adbDevices = this.Adb.Devices();
+            if(running.Count > 0 && adbDevices.Count == 0)
+            {
+                this.Adb.KillServer();
+                this.Adb.StartServer();
+                adbDevices = this.Adb.Devices();
+
+                if (adbDevices.Count == 0)
+                    throw new DeviceNotFoundException("Adb Device not found");
+            }
+
             int i = 0;
             return devices.Where(x =>
             {
@@ -132,7 +142,7 @@ namespace AutoAndroidEmulator
                     throw new Exception($"Notfound {this.Idx}");
                 }
             }
-            var p = Process.GetProcessById(player.ProcessID);
+            var p = Process.GetProcessById(this.PlayerDevice.ProcessID);
 
             this.PlayerHandle = p?.MainWindowHandle;
 

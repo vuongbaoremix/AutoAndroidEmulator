@@ -291,5 +291,15 @@ namespace AutoAndroidEmulator
 
             return bm;
         }
+    
+        public void KillServer()
+        { 
+            Utils.StartProcess($"{this.ADBPath}/adb.exe", "kill-server", false, true).WaitForExit(); 
+        }
+
+        public void StartServer()
+        {
+            Utils.StartProcess($"{this.ADBPath}/adb.exe", "start-server", false, true).WaitForExit();
+        }
     }
 }
