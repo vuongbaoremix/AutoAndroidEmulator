@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework> 
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks> 
+    <Configurations>Debug;Release;ReleaseSingleThread;Local</Configurations>
   </PropertyGroup>
 
 </Project>

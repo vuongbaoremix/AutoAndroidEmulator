@@ -146,10 +146,20 @@ namespace AutoAndroidEmulator
 
         public virtual string ExecuteADB(string cmd)
         {
-            if (string.IsNullOrEmpty(this.PlayerDevice.AdbDevice))
-                return Utils.ExecuteCMD($"{this.Config.ADBPath}/adb.exe {cmd}");
+            string s = "";
 
-            return Utils.ExecuteCMD($"{this.Config.ADBPath}/adb.exe -s {this.PlayerDevice.AdbDevice} {cmd}");
+            if (string.IsNullOrEmpty(this.PlayerDevice?.AdbDevice ?? ""))
+                s = Utils.ExecuteCMD($"{this.Config.ADBPath}/adb.exe {cmd}");
+
+            else
+                s = Utils.ExecuteCMD($"{this.Config.ADBPath}/adb.exe -s {this.PlayerDevice.AdbDevice} {cmd}");
+
+            if (s.Contains("device not found"))
+            {
+                throw new DeviceNotFoundException();
+            }
+
+            return s;
         }
 
         protected virtual Rectangle InternalFind(Bitmap img, Bitmap source, double tolerance = 0.2)
@@ -375,7 +385,7 @@ namespace AutoAndroidEmulator
         }
 
 
-        public virtual void BackupApp(string packageName, string filePath)
+        public virtual void BackupApp(string packageName, string filePath, Action<string> callbackBeforeCompress = null)
         {
             var tmpPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (!Directory.Exists(tmpPath))
@@ -388,6 +398,11 @@ namespace AutoAndroidEmulator
 
             //pull
             this.Pull($"/data/data/{packageName}", tmpPath);
+
+            if (callbackBeforeCompress != null)
+            {
+                callbackBeforeCompress(tmpPath); 
+            }
 
             File.WriteAllText(Path.Combine(tmpPath, "package.txt"), packageName);
 
