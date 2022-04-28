@@ -192,7 +192,7 @@ namespace AutoAndroidEmulator
 
         public void Kill(string packageName)
         {
-            Execute($"shell am {packageName}");
+            Execute($"shell am force-stop {packageName}");
         }
 
         public void Install(string apkPath)
@@ -204,7 +204,7 @@ namespace AutoAndroidEmulator
         {
             for (int i = 0; i < 15; i++)
             {
-                Key(KeyCode.KEYCODE_DEL); 
+                Key(KeyCode.KEYCODE_DEL);
             }
         }
 
@@ -245,7 +245,32 @@ namespace AutoAndroidEmulator
                 }
             }
 
-            return list.Where(x=> !string.IsNullOrEmpty(x)).ToList();
+            return list.Where(x => !string.IsNullOrEmpty(x)).ToList();
+        }
+
+        static byte[] repair(byte[] encoded)
+        {
+            List<byte> rs = new List<byte>(); 
+
+            for (int i = 0; i < encoded.Length; i++)
+            { 
+                if (encoded.Length > i + 2 && encoded[i] == 0x0d && encoded[i + 1] == 0x0d && encoded[i + 2] == 0x0a)
+                {
+                    rs.Add(0x0a);
+                    i += 2; 
+                }
+                else if (encoded.Length > i + 1 && encoded[i] == 0x0d && encoded[i + 1] == 0x0a)
+                {
+                    rs.Add(0x0a);
+                    i ++; 
+                }
+                else
+                {
+                    rs.Add(encoded[i]);
+                }
+            }
+
+            return rs.ToArray();
         }
 
         public Bitmap Capture(Rectangle? rec = null)
@@ -256,34 +281,37 @@ namespace AutoAndroidEmulator
             else
                 p = Utils.StartProcess($"{this.ADBPath}/adb.exe", $"-s {this.AdbDevice} shell screencap -p");
 
-            var stream = p.StandardOutput.BaseStream;
-            List<byte> data = new List<byte>(1024 * 1024);
+            var stream = new MemoryStream();
+            p.StandardOutput.BaseStream.CopyTo(stream);
 
-            int read = 0;
-            bool isCR = false;
-            do
-            {
-                byte[] buf = new byte[1024];
-                read = stream.Read(buf, 0, buf.Length);
+            var buffer = repair(stream.ToArray());
+            //List<byte> data = new List<byte>(1024 * 1024); 
+            //int read = 0;
+            //bool isCR = false;
+            //do
+            //{
+            //    byte[] buf = new byte[1024];
+            //    read = stream.Read(buf, 0, buf.Length);
 
-                //convert CRLF to LF 
-                for (int i = 0; i < read; i++)
-                {
-                    if (isCR && buf[i] == 0x0A)
-                    {
-                        isCR = false;
-                        data.RemoveAt(data.Count - 1);
-                        data.Add(buf[i]);
-                        continue;
-                    }
-                    isCR = buf[i] == 0x0D;
-                    data.Add(buf[i]);
-                }
-            }
-            while (read > 0);
+            //    //convert CRLF to LF 
+            //    for (int i = 0; i < read; i++)
+            //    {
+            //        if (isCR && buf[i] == 0x0A)
+            //        {
+            //            isCR = false;
+            //            data.RemoveAt(data.Count - 1);
+            //            data.Add(buf[i]);
+            //            continue;
+            //        }
+            //        isCR = buf[i] == 0x0D;
+            //        data.Add(buf[i]);
+            //    }
+            //}
+            //while (read > 0);
 
-            File.WriteAllBytes("test.png", data.ToArray());
-            var m = new MemoryStream(data.ToArray());
+
+            // File.WriteAllBytes("test.png", buffer);
+            var m = new MemoryStream(buffer);
             var bm = new Bitmap(m);
 
             if (rec != null)
@@ -291,10 +319,10 @@ namespace AutoAndroidEmulator
 
             return bm;
         }
-    
+
         public void KillServer()
-        { 
-            Utils.StartProcess($"{this.ADBPath}/adb.exe", "kill-server", false, true).WaitForExit(); 
+        {
+            Utils.StartProcess($"{this.ADBPath}/adb.exe", "kill-server", false, true).WaitForExit();
         }
 
         public void StartServer()
