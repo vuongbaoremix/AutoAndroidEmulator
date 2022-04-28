@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 
 namespace AutoAndroidEmulator
 {
@@ -115,6 +116,11 @@ namespace AutoAndroidEmulator
             {
                 case CaptureType.WinApi:
                     bm = WinApi.ScreenCapture.GetScreenshot(this.PlayerHandle ?? GetHandle());
+                    
+                    if (bm==null || bm.Height < 100)
+                    {
+                        bm = Adb.Capture();
+                    }
                     break;
                 case CaptureType.Adb:
                     bm = this.Adb.Capture();
@@ -144,7 +150,7 @@ namespace AutoAndroidEmulator
             return Utils.ExecuteCMD($"{this.Config.CLIPath} {cmd}");
         }
 
-        public virtual string ExecuteADB(string cmd)
+        protected string ExecuteADBInternal(string cmd)
         {
             string s = "";
 
@@ -160,6 +166,11 @@ namespace AutoAndroidEmulator
             }
 
             return s;
+        }
+
+        public virtual string ExecuteADB(string cmd)
+        {
+            return ExecuteADBInternal(cmd);
         }
 
         protected virtual Rectangle InternalFind(Bitmap img, Bitmap source, double tolerance = 0.2)
@@ -401,7 +412,7 @@ namespace AutoAndroidEmulator
 
             if (callbackBeforeCompress != null)
             {
-                callbackBeforeCompress(tmpPath); 
+                callbackBeforeCompress(tmpPath);
             }
 
             File.WriteAllText(Path.Combine(tmpPath, "package.txt"), packageName);
@@ -504,5 +515,19 @@ namespace AutoAndroidEmulator
         public abstract void ZoomIn();
 
         public abstract void ZoomOut();
+
+        public IPInfo GetIPInfo()
+        {
+            try
+            {
+                var s = this.ExecuteADBInternal("shell \"curl -X GET http://ipinfo.io\"");
+
+                return new JavaScriptSerializer().Deserialize<IPInfo>(s);
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
     }
 }

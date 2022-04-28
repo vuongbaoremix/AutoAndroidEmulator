@@ -6,4 +6,8 @@
     <Configurations>Debug;Release;ReleaseSingleThread;Local</Configurations>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+
 </Project>

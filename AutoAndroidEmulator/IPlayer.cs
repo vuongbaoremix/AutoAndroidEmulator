@@ -78,5 +78,7 @@ namespace AutoAndroidEmulator
         void Touch(Point p);
         void Input(string text);
         void ClearInput(int length = 10);
+
+        IPInfo GetIPInfo();
     }
 }

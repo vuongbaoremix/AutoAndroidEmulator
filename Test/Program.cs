@@ -16,20 +16,18 @@ namespace Test
             string adbPath = @"G:\LDPlayer\LDPlayer3.0";
             string cliPath = @"G:\LDPlayer\LDPlayer3.0\ldconsole.exe";
 
-            var player = new LDPlayer("LDPlayer-1-2", new PlayerConfig()
+            var player = new LDPlayer("LDPlayer-2", new PlayerConfig()
             {
                 ADBPath = adbPath,
                 CLIPath = cliPath,
                 UsePlayerADB = true,
-                CaptureType = CaptureType.WinApi
+                CaptureType = CaptureType.Adb
             });
 
             player.Connect();
 
-            player.RemoveProxy();
-            player.ChangeProxy("116.110.3.52", 36041); 
 
-            player.OpenLink("https://api.myip.com");
+            var bm = player.Capture();
         }
     }
 }
